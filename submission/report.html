@@ -35,7 +35,7 @@ compact <strong>calendar+target-history</strong> set (39 features that
 use no raw metric lags).</p>
 <h2 id="models-and-validation">Models and validation</h2>
 <p>We evaluate seasonal-naïve and exponential-smoothing baselines,
-LightGBM and XGBoost (Tweedie loss), and ExtraTrees (Extremely
+LightGBM, XGBoost and CatBoost (Tweedie loss), and ExtraTrees (Extremely
 Randomised Trees, from scikit-learn), each on both feature sets.
 Validation uses rolling-origin folds (always train on the past, score
 the future) placed inside a <strong>winter window carved from the
@@ -52,8 +52,10 @@ volatile. (2) The strong configuration in winter is <strong>ExtraTrees
 on the 39 calendar+target-history features</strong>: adding the raw
 metric columns makes this model worse on winter, whereas LightGBM
 benefits from the full feature set. The two models therefore use
-complementary information and combine well. Results were stable across
-random seeds.</p>
+complementary information and combine well. XGBoost and CatBoost were
+evaluated on the same protocol but did not improve on this blend, so
+they are not used in the final model. Results were stable across random
+seeds.</p>
 <table>
 <thead>
 <tr>

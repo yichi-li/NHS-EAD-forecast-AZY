@@ -38,9 +38,9 @@ averaged). We compare a **full** feature set (1383 features) against a compact
 
 ## Models and validation
 
-We evaluate seasonal-naïve and exponential-smoothing baselines, LightGBM and
-XGBoost (Tweedie loss), and ExtraTrees (Extremely Randomised Trees, from
-scikit-learn), each on both feature sets.
+We evaluate seasonal-naïve and exponential-smoothing baselines, LightGBM,
+XGBoost and CatBoost (Tweedie loss), and ExtraTrees (Extremely Randomised Trees,
+from scikit-learn), each on both feature sets.
 Validation uses rolling-origin folds (always train on the past, score the future)
 placed inside a **winter window carved from the development data** (Dec 2024 –
 Feb 2025), because the held-out assessment period is winter and a summer holdout
@@ -54,8 +54,9 @@ avoidable-death counts are about twice as high and more volatile. (2) The strong
 configuration in winter is **ExtraTrees on the 39
 calendar+target-history features**: adding the raw metric columns makes this model
 worse on winter, whereas LightGBM benefits from the full feature set. The two
-models therefore use complementary information and combine well. Results were
-stable across random seeds.
+models therefore use complementary information and combine well. XGBoost and
+CatBoost were evaluated on the same protocol but did not improve on this blend,
+so they are not used in the final model. Results were stable across random seeds.
 
 | Model (winter, out-of-sample) | MSE 1–5d | MSE 6–10d |
 |---|--:|--:|
