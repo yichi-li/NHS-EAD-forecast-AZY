@@ -80,8 +80,11 @@ Producing one ten-day forecast takes a few seconds, well within the one-hour lim
 
 ## Reproducibility
 
-The pipeline runs in order (`01`→`18`): build the daily table, classify metrics
-by causal role, build per-horizon feature matrices, run the model bake-off, and
-run the deployment framework. All validation is leakage-tested.
+The pipeline runs in order: build the daily table (`scripts/01`), classify metrics
+by causal role (`03`), build the per-horizon feature matrices (`04`), then run
+`main.py` to produce the official `pred_matrix.csv` and `mse_summary.csv`. All
+validation is leakage-tested. The forecasts included here are a development-period
+demonstration; the 173 assessment forecasts are produced by re-running `main.py`
+on the released 6-June data, per the contest timeline.
 
 _Word count target ≤ 1000._

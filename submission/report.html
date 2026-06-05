@@ -101,8 +101,13 @@ scoring exactly, this combination beats either model alone. Producing
 one ten-day forecast takes a few seconds, well within the one-hour
 limit.</p>
 <h2 id="reproducibility">Reproducibility</h2>
-<p>The pipeline runs in order (<code>01</code>→<code>18</code>): build
-the daily table, classify metrics by causal role, build per-horizon
-feature matrices, run the model bake-off, and run the deployment
-framework. All validation is leakage-tested.</p>
+<p>The pipeline runs in order: build the daily table
+(<code>scripts/01</code>), classify metrics by causal role
+(<code>03</code>), build the per-horizon feature matrices
+(<code>04</code>), then run <code>main.py</code> to produce the official
+<code>pred_matrix.csv</code> and <code>mse_summary.csv</code>. All
+validation is leakage-tested. The forecasts included here are a
+development-period demonstration; the 173 assessment forecasts are
+produced by re-running <code>main.py</code> on the released 6-June data,
+per the contest timeline.</p>
 <p><em>Word count target ≤ 1000.</em></p>
