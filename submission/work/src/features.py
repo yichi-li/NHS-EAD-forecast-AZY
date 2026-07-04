@@ -158,7 +158,19 @@ def build_features_for_horizon(
             lag_exprs.append(wide[c].shift(lag_n).alias(f"{c}_lag_{lag_n}"))
     df = df.with_columns(lag_exprs)
 
-    # 2b. Rolling stats, only on top-N leading indicators
+    # 2b. Rolling stats, only on top-N leading indicators. If a lag-0 correlation
+    # file is explicitly provided it MUST exist: silently falling back to the
+    # first-N columns would quietly swap the whole rolling-feature set (a
+    # reproducibility hazard flagged in the pre-submission audit), so we raise.
+    if lag0_pearson_path is not None and not Path(lag0_pearson_path).exists():
+        raise FileNotFoundError(
+            f"lag0_pearson_path={lag0_pearson_path} was provided but does not exist. "
+            "Run gen_lag0.py to build outputs/eda/05-lag-correlations.csv first (it "
+            "computes the lag-0 selection on the DEVELOPMENT window only, so the "
+            "selection stays leakage-safe; do not use 02_eda.py, which computes it "
+            "on the full series). Or pass lag0_pearson_path=None to intentionally "
+            "use the first-N columns."
+        )
     if lag0_pearson_path and lag0_pearson_path.exists():
         lag_df = pl.read_csv(lag0_pearson_path).filter(pl.col("lag") == 0)
         lag_df = lag_df.with_columns(pl.col("pearson").abs().alias("abs_pearson"))
@@ -176,8 +188,15 @@ def build_features_for_horizon(
     df = df.with_columns(roll_exprs)
 
     # ---- 3. Causal-group aggregates (mean and std of z-scored metrics, observable at D) ----
-    # Computed from x at D (no shift). z-score uses dev-period mean/std (legal:
-    # these are constants known once dev period is fixed).
+    # Computed from x at D (no shift). The z-score mean/std are fitted on the
+    # DEVELOPMENT window only (midday_day <= 2025-09-30): they are constants fixed
+    # once the dev period is known, so applying them at any later origin is legal.
+    # Fitting them on the full dev+assessment series would leak the assessment
+    # marginal distribution into every assessment-origin feature, which the
+    # organisers' Issue #5 leakage ruling forbids.
+    import datetime as _dt
+    _dev_end = _dt.date(2025, 9, 30)
+    _dev_mask = np.array([d <= _dev_end for d in wide["midday_day"].to_list()], dtype=bool)
     catalog_x = catalog.filter(pl.col("causal_role") != "target")
     for role in ["upstream", "concurrent", "downstream"]:
         role_cols = catalog_x.filter(pl.col("causal_role") == role)["column"].to_list()
@@ -191,8 +210,9 @@ def build_features_for_horizon(
         z_arrays = []
         for c in role_cols:
             col = wide[c].to_numpy().astype(float)
-            mean = np.nanmean(col)
-            std = np.nanstd(col)
+            devcol = col[_dev_mask]
+            mean = np.nanmean(devcol)
+            std = np.nanstd(devcol)
             if std > 0 and not np.isnan(std):
                 z_arrays.append((col - mean) / std)
             else:

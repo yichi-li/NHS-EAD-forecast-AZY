@@ -1,3 +1,180 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Forecasting NHS estimated avoidable deaths</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Forecasting NHS estimated avoidable deaths</h1>
+</header>
 <h1
 id="forecasting-nhs-estimated-avoidable-deaths-method-and-results">Forecasting
 NHS estimated avoidable deaths — method and results</h1>
@@ -5,13 +182,17 @@ NHS estimated avoidable deaths — method and results</h1>
 <p>We forecast the daily <code>estimated_avoidable_deaths</code> for
 each of the next ten days from 220 NHS system-pressure metrics, and are
 scored by mean squared error over the 1–5 day and 6–10 day horizons. The
-assessment period (Oct 2025 – Mar 2026) falls in winter.</p>
+released assessment window is 1 Oct 2025 to 17 Feb 2026 (the organisers’
+amended validation dataset): 131 sliding 10-day periods that span autumn
+and winter.</p>
 <h2 id="data-and-preprocessing">Data and preprocessing</h2>
 <p>The raw long-format records are aggregated to a daily wide table
 using a midday cut-off (entries up to 12:00 are assigned to the same
-day, later ones to the next), giving 930 days × 349 metric-by-coverage
-columns over 16 Mar 2023 – 30 Sep 2025. This matches the reference
-preprocessing.</p>
+day, later ones to the next). The development window holds 930 days (16
+Mar 2023 – 30 Sep 2025) with 348 metric-by-coverage columns; the
+released validation data adds three further metrics from 1 Oct 2025,
+giving 351 metric columns plus the target on the assessment build. This
+matches the reference preprocessing.</p>
 <h2 id="leakage-discipline">Leakage discipline</h2>
 <p>Two contest rules drive the pipeline. First, a forecast for days
 D+1…D+10 may use only data available up to midday on day D. Second, the
@@ -26,13 +207,13 @@ after the forecast origin.</p>
 <p>For each horizon we build: target lags y(D−3)…y(D−17) and rolling
 mean/standard deviation of the target (windows 7/14/30/60, shifted by
 the reporting lag); calendar features for the target day (day-of-week,
-month, UK bank holidays, Christmas and flu-season flags, and
-weekly/annual Fourier terms — all known in advance); per-metric lags and
-rolling statistics; and three causal-role pressure aggregates (upstream
-/ concurrent / downstream of ED boarding, standardised and averaged). We
-compare a <strong>full</strong> feature set (1383 features) against a
-compact <strong>calendar+target-history</strong> set (39 features that
-use no raw metric lags).</p>
+month, UK bank holidays, Christmas and flu-season flags — all known in
+advance); per-metric lags and rolling statistics; and three causal-role
+pressure aggregates (upstream / concurrent / downstream of ED boarding,
+standardised and averaged). We compare a <strong>full</strong> feature
+set (1392 features) against a compact
+<strong>calendar+target-history</strong> set (39 features that use no
+raw metric lags).</p>
 <h2 id="models-and-validation">Models and validation</h2>
 <p>We evaluate seasonal-naïve and exponential-smoothing baselines,
 LightGBM, XGBoost and CatBoost (Tweedie loss), and ExtraTrees (Extremely
@@ -97,17 +278,33 @@ a more even split at the short horizons, where LightGBM’s use of the
 system metrics helps, shifting to mostly ExtraTrees at the longer
 horizons, where those metrics are stale and calendar-plus-history
 carries the signal. On a per-origin winter dry-run that reproduces the
-scoring exactly, this combination beats either model alone. Producing
-one ten-day forecast takes a few seconds, well within the one-hour
-limit.</p>
+scoring exactly, this combination beats either model alone. The horizon
+weights were fixed on this winter development dry-run, never on the
+assessment data, and pure ExtraTrees at the long horizons is within
+about 0.001 MSE, so the result does not hinge on the exact split.
+Producing one ten-day forecast takes a few seconds, well within the
+one-hour limit. For a like-for-like comparison with entries that report
+a development backtest, we also evaluate the framework on the most
+recent 173 development origins (the same rolling-origin basis, all ten
+target days observed): MSE 1–5d = 0.040 and 6–10d = 0.046. On the
+released assessment window (131 periods, 1 Oct 2025 to 17 Feb 2026) it
+realises MSE 1–5d = 0.103 and 6–10d = 0.111. The three sets of figures
+differ by season, not by model: the winter-only holdout above (0.151 /
+0.161) is the deliberately hard stress test, the development backtest
+falls in the lower-pressure spring and summer, and the released
+assessment window is winter-leaning.</p>
 <h2 id="reproducibility">Reproducibility</h2>
 <p>The pipeline runs in order: build the daily table
-(<code>scripts/01</code>), classify metrics by causal role
-(<code>03</code>), build the per-horizon feature matrices
-(<code>04</code>), then run <code>main.py</code> to produce the official
-<code>pred_matrix.csv</code> and <code>mse_summary.csv</code>. All
-validation is leakage-tested. The forecasts included here are a
-development-period demonstration; the 173 assessment forecasts are
-produced by re-running <code>main.py</code> on the released 6-June data,
-per the contest timeline.</p>
+(<code>scripts/01</code>), the dev-only lag-0 feature selection
+(<code>gen_lag0</code>), the causal-role catalogue (<code>03</code>),
+the per-horizon feature matrices (<code>04</code>), then
+<code>main.py</code> to write <code>pred_matrix.csv</code> and
+<code>mse_summary.csv</code>. <code>README.md</code> gives the exact
+folder layout and where the two official CSVs go. All validation is
+leakage-tested. The forecasts included here are the 131 assessment
+forecasts, produced by re-running <code>main.py</code> on the released
+validation data (the development CSV plus the organisers’ amended
+validation CSV, which ends 17 Feb 2026).</p>
 <p><em>Word count target ≤ 1000.</em></p>
+</body>
+</html>

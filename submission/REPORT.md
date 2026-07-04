@@ -4,15 +4,18 @@
 
 We forecast the daily `estimated_avoidable_deaths` for each of the next ten days
 from 220 NHS system-pressure metrics, and are scored by mean squared error over
-the 1–5 day and 6–10 day horizons. The assessment period (Oct 2025 – Mar 2026)
-falls in winter.
+the 1–5 day and 6–10 day horizons. The released assessment window is 1 Oct 2025
+to 17 Feb 2026 (the organisers' amended validation dataset): 131 sliding 10-day
+periods that span autumn and winter.
 
 ## Data and preprocessing
 
 The raw long-format records are aggregated to a daily wide table using a midday
 cut-off (entries up to 12:00 are assigned to the same day, later ones to the
-next), giving 930 days × 349 metric-by-coverage columns over 16 Mar 2023 –
-30 Sep 2025. This matches the reference preprocessing.
+next). The development window holds 930 days (16 Mar 2023 – 30 Sep 2025) with 348
+metric-by-coverage columns; the released validation data adds three further
+metrics from 1 Oct 2025, giving 351 metric columns plus the target on the
+assessment build. This matches the reference preprocessing.
 
 ## Leakage discipline
 
@@ -30,10 +33,10 @@ origin.
 For each horizon we build: target lags y(D−3)…y(D−17) and rolling mean/standard
 deviation of the target (windows 7/14/30/60, shifted by the reporting lag);
 calendar features for the target day (day-of-week, month, UK bank holidays,
-Christmas and flu-season flags, and weekly/annual Fourier terms — all known in
+Christmas and flu-season flags — all known in
 advance); per-metric lags and rolling statistics; and three causal-role pressure
 aggregates (upstream / concurrent / downstream of ED boarding, standardised and
-averaged). We compare a **full** feature set (1383 features) against a compact
+averaged). We compare a **full** feature set (1392 features) against a compact
 **calendar+target-history** set (39 features that use no raw metric lags).
 
 ## Models and validation
@@ -75,16 +78,28 @@ feature set. The blend is weighted by horizon: a more even split at the short
 horizons, where LightGBM's use of the system metrics helps, shifting to mostly
 ExtraTrees at the longer horizons, where those metrics are stale
 and calendar-plus-history carries the signal. On a per-origin winter dry-run that
-reproduces the scoring exactly, this combination beats either model alone.
+reproduces the scoring exactly, this combination beats either model alone. The
+horizon weights were fixed on this winter development dry-run, never on the
+assessment data, and pure ExtraTrees at the long horizons is within about 0.001
+MSE, so the result does not hinge on the exact split.
 Producing one ten-day forecast takes a few seconds, well within the one-hour limit.
+For a like-for-like comparison with entries that report a development backtest, we
+also evaluate the framework on the most recent 173 development origins (the same
+rolling-origin basis, all ten target days observed): MSE 1–5d = 0.040 and
+6–10d = 0.046. On the released assessment window (131 periods, 1 Oct 2025 to
+17 Feb 2026) it realises MSE 1–5d = 0.103 and 6–10d = 0.111. The three sets of
+figures differ by season, not by model: the winter-only holdout above (0.151 /
+0.161) is the deliberately hard stress test, the development backtest falls in the
+lower-pressure spring and summer, and the released assessment window is winter-leaning.
 
 ## Reproducibility
 
-The pipeline runs in order: build the daily table (`scripts/01`), classify metrics
-by causal role (`03`), build the per-horizon feature matrices (`04`), then run
-`main.py` to produce the official `pred_matrix.csv` and `mse_summary.csv`. All
-validation is leakage-tested. The forecasts included here are a development-period
-demonstration; the 173 assessment forecasts are produced by re-running `main.py`
-on the released 6-June data, per the contest timeline.
+The pipeline runs in order: build the daily table (`scripts/01`), the dev-only
+lag-0 feature selection (`gen_lag0`), the causal-role catalogue (`03`), the
+per-horizon feature matrices (`04`), then `main.py` to write `pred_matrix.csv` and
+`mse_summary.csv`. `README.md` gives the exact folder layout and where the two
+official CSVs go. All validation is leakage-tested. The forecasts included here are the 131 assessment
+forecasts, produced by re-running `main.py` on the released validation data (the
+development CSV plus the organisers' amended validation CSV, which ends 17 Feb 2026).
 
 _Word count target ≤ 1000._

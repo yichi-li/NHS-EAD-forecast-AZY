@@ -5,7 +5,7 @@ At each forecast origin D it RE-FITS both models on all data with an already-
 OBSERVED label (decision_day <= D - 3 - h, i.e. respecting the 3-day target
 reporting lag and the "only data up to day D" rule), then combines them per
 horizon with fixed "weight A":
-    day 1-5  : 0.55 * ExtraTrees(calendar+target-history, 39 feats) + 0.45 * LightGBM(full, 1383)
+    day 1-5  : 0.55 * ExtraTrees(calendar+target-history, 39 feats) + 0.45 * LightGBM(full, 1392)
     day 6-10 : 0.90 * ExtraTrees                                    + 0.10 * LightGBM
 No future target or future predictor values are ever used (no leakage).
 
@@ -15,11 +15,12 @@ RUN ORDER
     ./run.sh python scripts/04_feature_engineering.py # per-horizon feature matrices
     ./run.sh python main.py                           # -> outputs/submission/{pred_matrix,mse_summary}.csv
 
-For the assessment: re-run 01/03/04 on the released 6-June data first (so the
-feature matrices include Oct-2025..Mar-2026), then run main.py — it forecasts the
-173 rolling 10-day periods (1 Oct 2025 .. 31 Mar 2026). On dev data it falls back
-to the most recent 173 valid origins, and fills mse_summary where the true target
-is present (left blank for assessment dates whose outcomes are dummy/-9999).
+For the assessment: re-run 01/03/04 on the released validation data first (the
+development CSV plus the organisers' amended validation CSV, so the feature
+matrices span 16 Mar 2023 .. 17 Feb 2026), then run main.py — it forecasts the
+131 rolling 10-day periods (1 Oct 2025 .. 17 Feb 2026, the amended assessment
+window). On dev-only data it falls back to the most recent valid origins, and
+fills mse_summary where the true target is present.
 
 Env: MAX_ORIGINS=<n> limits the number of origins (smoke test). Runtime ~9s/origin.
 """

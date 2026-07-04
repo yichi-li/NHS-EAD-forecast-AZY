@@ -204,7 +204,15 @@ def plot_time_coverage(df: pl.DataFrame) -> dict:
 
 ### check lag correlations for each metric (with Y, at lags {0,1,3,7,14,28})
 def lag_correlations(df: pl.DataFrame) -> tuple[dict, list[dict]]:
-    """For each metric, compute Pearson + Spearman correlation with Y at each lag."""
+    """For each metric, compute Pearson + Spearman correlation with Y at each lag.
+
+    Restricted to the DEVELOPMENT window (midday_day <= 2025-09-30): this file also
+    feeds the rolling-feature selection (05-lag-correlations.csv), which must be
+    leakage-safe, so the assessment period must not influence it. Same rule as
+    gen_lag0.py.
+    """
+    import datetime as _dt
+    df = df.filter(pl.col("midday_day") <= _dt.date(2025, 9, 30))
     df_pd = df.to_pandas().set_index("midday_day").sort_index()
     metrics = [c for c in df_pd.columns if c != TARGET]
     y = df_pd[TARGET]

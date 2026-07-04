@@ -1,0 +1,388 @@
+{
+  "horizons": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "per_horizon": {
+    "1": {
+      "horizon": 1,
+      "n_rows": 1069,
+      "n_cols": 1395,
+      "n_features": 1392,
+      "y_lag_range": [
+        3,
+        17
+      ],
+      "y_rolling_windows": [
+        7,
+        14,
+        30,
+        60
+      ],
+      "y_rolling_shift": 3,
+      "x_lags": [
+        0,
+        1,
+        7
+      ],
+      "x_rolling_windows": [
+        7,
+        14,
+        30
+      ],
+      "n_x_metrics": 351,
+      "top_n_x_for_rolling": 50,
+      "feature_families": {
+        "y_lag": 15,
+        "y_rolling": 8,
+        "x_lag": 1053,
+        "x_rolling": 300,
+        "causal_aggregate": 6,
+        "calendar": 10
+      }
+    },
+    "2": {
+      "horizon": 2,
+      "n_rows": 1068,
+      "n_cols": 1395,
+      "n_features": 1392,
+      "y_lag_range": [
+        3,
+        17
+      ],
+      "y_rolling_windows": [
+        7,
+        14,
+        30,
+        60
+      ],
+      "y_rolling_shift": 3,
+      "x_lags": [
+        0,
+        1,
+        7
+      ],
+      "x_rolling_windows": [
+        7,
+        14,
+        30
+      ],
+      "n_x_metrics": 351,
+      "top_n_x_for_rolling": 50,
+      "feature_families": {
+        "y_lag": 15,
+        "y_rolling": 8,
+        "x_lag": 1053,
+        "x_rolling": 300,
+        "causal_aggregate": 6,
+        "calendar": 10
+      }
+    },
+    "3": {
+      "horizon": 3,
+      "n_rows": 1067,
+      "n_cols": 1395,
+      "n_features": 1392,
+      "y_lag_range": [
+        3,
+        17
+      ],
+      "y_rolling_windows": [
+        7,
+        14,
+        30,
+        60
+      ],
+      "y_rolling_shift": 3,
+      "x_lags": [
+        0,
+        1,
+        7
+      ],
+      "x_rolling_windows": [
+        7,
+        14,
+        30
+      ],
+      "n_x_metrics": 351,
+      "top_n_x_for_rolling": 50,
+      "feature_families": {
+        "y_lag": 15,
+        "y_rolling": 8,
+        "x_lag": 1053,
+        "x_rolling": 300,
+        "causal_aggregate": 6,
+        "calendar": 10
+      }
+    },
+    "4": {
+      "horizon": 4,
+      "n_rows": 1066,
+      "n_cols": 1395,
+      "n_features": 1392,
+      "y_lag_range": [
+        3,
+        17
+      ],
+      "y_rolling_windows": [
+        7,
+        14,
+        30,
+        60
+      ],
+      "y_rolling_shift": 3,
+      "x_lags": [
+        0,
+        1,
+        7
+      ],
+      "x_rolling_windows": [
+        7,
+        14,
+        30
+      ],
+      "n_x_metrics": 351,
+      "top_n_x_for_rolling": 50,
+      "feature_families": {
+        "y_lag": 15,
+        "y_rolling": 8,
+        "x_lag": 1053,
+        "x_rolling": 300,
+        "causal_aggregate": 6,
+        "calendar": 10
+      }
+    },
+    "5": {
+      "horizon": 5,
+      "n_rows": 1065,
+      "n_cols": 1395,
+      "n_features": 1392,
+      "y_lag_range": [
+        3,
+        17
+      ],
+      "y_rolling_windows": [
+        7,
+        14,
+        30,
+        60
+      ],
+      "y_rolling_shift": 3,
+      "x_lags": [
+        0,
+        1,
+        7
+      ],
+      "x_rolling_windows": [
+        7,
+        14,
+        30
+      ],
+      "n_x_metrics": 351,
+      "top_n_x_for_rolling": 50,
+      "feature_families": {
+        "y_lag": 15,
+        "y_rolling": 8,
+        "x_lag": 1053,
+        "x_rolling": 300,
+        "causal_aggregate": 6,
+        "calendar": 10
+      }
+    },
+    "6": {
+      "horizon": 6,
+      "n_rows": 1064,
+      "n_cols": 1395,
+      "n_features": 1392,
+      "y_lag_range": [
+        3,
+        17
+      ],
+      "y_rolling_windows": [
+        7,
+        14,
+        30,
+        60
+      ],
+      "y_rolling_shift": 3,
+      "x_lags": [
+        0,
+        1,
+        7
+      ],
+      "x_rolling_windows": [
+        7,
+        14,
+        30
+      ],
+      "n_x_metrics": 351,
+      "top_n_x_for_rolling": 50,
+      "feature_families": {
+        "y_lag": 15,
+        "y_rolling": 8,
+        "x_lag": 1053,
+        "x_rolling": 300,
+        "causal_aggregate": 6,
+        "calendar": 10
+      }
+    },
+    "7": {
+      "horizon": 7,
+      "n_rows": 1063,
+      "n_cols": 1395,
+      "n_features": 1392,
+      "y_lag_range": [
+        3,
+        17
+      ],
+      "y_rolling_windows": [
+        7,
+        14,
+        30,
+        60
+      ],
+      "y_rolling_shift": 3,
+      "x_lags": [
+        0,
+        1,
+        7
+      ],
+      "x_rolling_windows": [
+        7,
+        14,
+        30
+      ],
+      "n_x_metrics": 351,
+      "top_n_x_for_rolling": 50,
+      "feature_families": {
+        "y_lag": 15,
+        "y_rolling": 8,
+        "x_lag": 1053,
+        "x_rolling": 300,
+        "causal_aggregate": 6,
+        "calendar": 10
+      }
+    },
+    "8": {
+      "horizon": 8,
+      "n_rows": 1062,
+      "n_cols": 1395,
+      "n_features": 1392,
+      "y_lag_range": [
+        3,
+        17
+      ],
+      "y_rolling_windows": [
+        7,
+        14,
+        30,
+        60
+      ],
+      "y_rolling_shift": 3,
+      "x_lags": [
+        0,
+        1,
+        7
+      ],
+      "x_rolling_windows": [
+        7,
+        14,
+        30
+      ],
+      "n_x_metrics": 351,
+      "top_n_x_for_rolling": 50,
+      "feature_families": {
+        "y_lag": 15,
+        "y_rolling": 8,
+        "x_lag": 1053,
+        "x_rolling": 300,
+        "causal_aggregate": 6,
+        "calendar": 10
+      }
+    },
+    "9": {
+      "horizon": 9,
+      "n_rows": 1061,
+      "n_cols": 1395,
+      "n_features": 1392,
+      "y_lag_range": [
+        3,
+        17
+      ],
+      "y_rolling_windows": [
+        7,
+        14,
+        30,
+        60
+      ],
+      "y_rolling_shift": 3,
+      "x_lags": [
+        0,
+        1,
+        7
+      ],
+      "x_rolling_windows": [
+        7,
+        14,
+        30
+      ],
+      "n_x_metrics": 351,
+      "top_n_x_for_rolling": 50,
+      "feature_families": {
+        "y_lag": 15,
+        "y_rolling": 8,
+        "x_lag": 1053,
+        "x_rolling": 300,
+        "causal_aggregate": 6,
+        "calendar": 10
+      }
+    },
+    "10": {
+      "horizon": 10,
+      "n_rows": 1060,
+      "n_cols": 1395,
+      "n_features": 1392,
+      "y_lag_range": [
+        3,
+        17
+      ],
+      "y_rolling_windows": [
+        7,
+        14,
+        30,
+        60
+      ],
+      "y_rolling_shift": 3,
+      "x_lags": [
+        0,
+        1,
+        7
+      ],
+      "x_rolling_windows": [
+        7,
+        14,
+        30
+      ],
+      "n_x_metrics": 351,
+      "top_n_x_for_rolling": 50,
+      "feature_families": {
+        "y_lag": 15,
+        "y_rolling": 8,
+        "x_lag": 1053,
+        "x_rolling": 300,
+        "causal_aggregate": 6,
+        "calendar": 10
+      }
+    }
+  },
+  "duration_seconds": 2.4525558948516846,
+  "generated": "2026-07-03T13:00:21.932766"
+}

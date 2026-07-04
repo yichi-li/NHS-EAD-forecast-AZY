@@ -17,14 +17,46 @@ import polars as pl
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DATA_RAW = PROJECT_ROOT / "NHS-EAD-forecast-main" / "data" / "turingAI_forecasting_challenge_dataset.csv"
+DATA_VALIDATION = PROJECT_ROOT / "NHS-EAD-forecast-main" / "data" / "turingAI_forecasting_challenge_validation_dataset.csv"
 DATA_PROCESSED = PROJECT_ROOT / "work" / "data"
 WIDE_DAILY = DATA_PROCESSED / "wide_daily.parquet"
 
 # Dev / assessment cut per competition rules (README.md §"Data > Assessment dataset"):
 # Dev:        2023-03-16 to 2025-09-30
-# Assessment: 2025-10-01 to 2026-03-31 (dummy -9999 in the development release)
+# Assessment: 2025-10-01 to 2026-02-17 in the released validation set (real values).
+#             The organisers' amended validation dataset ends 17 Feb 2026, giving
+#             131 sliding 10-day assessment periods. In the development-only release
+#             this same period is filled with dummy -9999.
 DEV_END = "2025-09-30"
 ASSESSMENT_DUMMY = -9999
+
+
+def _scan_long(csv: Path) -> pl.LazyFrame:
+    """Lazy-scan an official long-format CSV and parse `dt` to a tz-naive datetime.
+
+    Handles both source formats with one code path:
+    - development CSV : "YYYY-MM-DD HH:MM:SS" and date-only "YYYY-MM-DD"
+    - validation CSV : "YYYY-MM-DDTHH:MM:SSZ" (ISO 8601, UTC)
+    We normalise the ISO 'T'/'Z' (T -> space, Z -> "") so a single format string
+    parses both, keeping every timestamp tz-naive so the two frames concatenate.
+    """
+    lf = pl.scan_csv(
+        csv,
+        try_parse_dates=False,
+        null_values=["NA", ""],
+        schema_overrides={"value": pl.Float64},
+    )
+    lf = lf.with_columns(
+        pl.col("dt").str.replace("T", " ", literal=True).str.replace("Z", "", literal=True).alias("dt")
+    )
+    # The R baseline uses parse_date_time(orders = c("Ymd HMS", "Ymd")): try the
+    # full datetime first, fall back to date-only for the remainder.
+    return lf.with_columns(
+        pl.coalesce(
+            pl.col("dt").str.to_datetime("%Y-%m-%d %H:%M:%S", strict=False),
+            pl.col("dt").str.to_datetime("%Y-%m-%d", strict=False),
+        ).alias("dt"),
+    )
 
 
 def long_to_wide_daily(
@@ -32,18 +64,25 @@ def long_to_wide_daily(
     dst_parquet: Path = WIDE_DAILY,
     *,
     dev_only: bool = True,
+    validation_csv: Path | None = DATA_VALIDATION,
 ) -> pl.DataFrame:
-    """Build the wide-daily Parquet from the official long-format CSV.
+    """Build the wide-daily Parquet from the official long-format CSV(s).
 
     Parameters
     ----------
     src_csv : Path
-        The official long-format CSV (1.8 GB).
+        The official development long-format CSV (1.8 GB).
     dst_parquet : Path
         Output Parquet path; parent dir is created.
     dev_only : bool
         If True, drop rows with `dt > DEV_END` (the assessment-period rows are
         dummy -9999 in this release anyway, but trimming early saves memory).
+    validation_csv : Path | None
+        The released validation/assessment CSV (1 Oct 2025 .. 17 Feb 2026, real
+        values). When present it is appended to the (dev-trimmed) development data,
+        so the wide table spans the full timeline needed to forecast the 131
+        assessment periods. Defaults to DATA_VALIDATION; ignored if the file is
+        absent (then the table is development-only, unchanged behaviour).
 
     Returns
     -------
@@ -52,25 +91,20 @@ def long_to_wide_daily(
     """
     dst_parquet.parent.mkdir(parents=True, exist_ok=True)
 
-    # 1. Lazy scan with NA handling (the file contains literal "NA" strings)
-    df = pl.scan_csv(
-        src_csv,
-        try_parse_dates=False,
-        null_values=["NA", ""],
-        schema_overrides={"value": pl.Float64},
-    )
+    # 1-2. Lazy-scan + parse dt (both source date formats handled in _scan_long).
+    df = _scan_long(src_csv)
 
-    # 2. Parse dt to datetime — file has two formats: "YYYY-MM-DD HH:MM:SS" and "YYYY-MM-DD".
-    # The R baseline uses parse_date_time(orders = c("Ymd HMS", "Ymd")).
-    # Strategy: try full datetime first, fall back to date-only for the remainder.
-    df = df.with_columns(
-        pl.coalesce(
-            pl.col("dt").str.to_datetime("%Y-%m-%d %H:%M:%S", strict=False),
-            pl.col("dt").str.to_datetime("%Y-%m-%d", strict=False),
-        ).alias("dt"),
-    )
-    if dev_only:
+    # Trim the dev file to the development window. Its assessment-period rows are
+    # dummy -9999 anyway; when the released validation data is appended below we
+    # must not let the dummy dev rows overlap the real assessment rows.
+    use_validation = validation_csv is not None and Path(validation_csv).exists()
+    if dev_only or use_validation:
         df = df.filter(pl.col("dt") <= pl.lit(f"{DEV_END} 23:59:59").str.to_datetime("%Y-%m-%d %H:%M:%S"))
+
+    # Append the released validation/assessment data so the wide table reaches
+    # 17 Feb 2026 (the amended end point -> 131 sliding 10-day periods).
+    if use_validation:
+        df = pl.concat([df, _scan_long(Path(validation_csv))], how="vertical_relaxed")
 
     # midday_day = date(dt) + (1 day if hour > 12)
     df = df.with_columns(
@@ -108,6 +142,14 @@ def long_to_wide_daily(
     outcome_candidates = [c for c in wide.columns if c.lower().startswith("estimated_avoidable_deaths")]
     if outcome_candidates:
         wide = wide.rename({outcome_candidates[0]: "estimated_avoidable_deaths"})
+
+    # 7b. Deterministic column order. The pivot's column order follows the
+    # (streaming) scan order and therefore varies run-to-run; LightGBM's split
+    # tie-breaking is sensitive to feature order, so an unfixed order makes
+    # forecasts differ slightly between reproductions. Sorting the columns once
+    # here makes the whole pipeline reproducible. Downstream code selects columns
+    # by name, so this reordering is safe.
+    wide = wide.select(["midday_day"] + sorted(c for c in wide.columns if c != "midday_day"))
 
     # 8. Persist
     wide.write_parquet(dst_parquet, compression="zstd")
